@@ -6,7 +6,7 @@
 
 ### 1-1. project zone 셋팅
 ```
-gcloud config set compute/zone us-central1-a
+gcloud config set compute/zone asia-northeast1-c
 ```
 
 ### 1-2. 클러스터 생성
