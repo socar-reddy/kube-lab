@@ -150,3 +150,35 @@ kubeadm join 10.0.0.157:6443 --token 67crso.go8x2re8k8uc848g --discovery-token-c
 ```sh
 kubectl get nodes
 ```
+
+## 4. pod 띄워보기
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+    env: test
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+```
+```
+kubectrl apply -f pod.yaml
+kubectrl get po -owide # 어디에 배포된지 알 수 있다.
+```
+
+스케일 업 해보기
+```
+kubectrl delete -f pod.yaml
+kubectrl get deploy
+kubectrl get po -owide
+kubectrl scale deploy nginx --replicas=4
+kubectrl get po -owide
+kubectrl get nodes
+마스터 노드에 배포되고 있지 않다
+```
+
+지금까지는 GCM으로 할때는 워커노드 3개를 하고 있었고 master node를 신경안썼지만
+여기서 처럼 직접 클러스트를 구성할 때는 당연히 master노드를 이렇게 신경써줘야 한다.
