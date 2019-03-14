@@ -6,6 +6,13 @@
 - 도커 레지스트리에 푸시
 - 도커 컨테이너 실행
 
+### 0. root 권한으로 실습
+```
+sudo su -
+passwd root
+
+```
+
 ### 1. VM 띄우기
 
 - GCP 또는 AWS 상에서 VM을 하나 띄운다.
@@ -19,6 +26,9 @@ sudo sh get-docker.sh
 
 ##### 2-1. 프로젝트 가져오기
 ```
+mkdir /etc/dev
+cd /etc/dev
+
 git clone https://github.com/jmyung/py-docker-demo
 cd py-docker-demo
 ```
@@ -109,5 +119,18 @@ docker run -d -p 8888:8888 -h my-web-server 도커ACCOUNT/py-web-server:v1
 sudo curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 
 sudo chmod +x /usr/local/bin/docker-compose
+```
 
+참고-> [비트나미 워드프레스 허브 저장소](https://hub.docker.com/r/bitnami/wordpress/)
+##### 5-2. 비트나미 워드프레스 컴포즈 파일 받기
+```
+mkdir /etc/dev/wordpress
+cd /etc/dev/wordpress
+
+curl -LO https://raw.githubusercontent.com/bitnami/bitnami-docker-wordpress/master/docker-compose.yml
+```
+
+##### 5-3. 컴포즈 파일에 정의되어 있는 이미지들을 알아서 풀받고 런시켜준다
+```
+docker-compose up
 ```
