@@ -10,7 +10,7 @@ gcloud config set compute/zone us-central1-a
 ```
 
 
-##### 1-2. 클러스터 생성
+##### 1-2. 클러스터 생성 / CLI로 
 - GCP웹에서 직접 만들어도 된다.
 - 에러가 나는 경우는 쿠버네티스 api가 활성화가 되지 않은 것이다. [이걸 활성화 해줘야 한다](https://console.cloud.google.com/apis/library/container.googleapis.com?q=ku&id=1def4230-f361-4931-b386-576c62b90799&project=kube-study-234513&folder&organizationId&supportedpurview=project)
 - 노드개수는 홀수개를 추천 디폴트는 3개
