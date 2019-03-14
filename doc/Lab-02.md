@@ -11,8 +11,11 @@ gcloud config set compute/zone us-central1-a
 
 
 ##### 1-2. 클러스터 생성
+- GCP웹에서 직접 만들어도 된다.
+- 에러가 나는 경우는 쿠버네티스 api가 활성화가 되지 않은 것이다. [이걸 활성화 해줘야 한다](https://console.cloud.google.com/apis/library/container.googleapis.com?q=ku&id=1def4230-f361-4931-b386-576c62b90799&project=kube-study-234513&folder&organizationId&supportedpurview=project)
+- 노드개수는 홀수개를 추천 디폴트는 3개
 ```
-gcloud container clusters create lab02 --num-nodes 3 --scopes "https://www.googleapis.com/auth/projecthosting,storage-rw"
+gcloud container clusters create lab02(클러스터명) --num-nodes 3 --scopes "https://www.googleapis.com/auth/projecthosting,storage-rw"
 ```
 
 결과
@@ -35,6 +38,11 @@ kubeconfig entry generated for lab02.
 참고 : https://labs.play-with-k8s.com
 
 ### 2. 클러스터 기본정보 확인해 보기
+GCP VM인스턴스의 3개의 워커노드가 생성된 걸 확인할 수 있다.
+kubectl을 치기 귀찮으면 
+```
+alias k=kubectl
+```
 
 ##### 2-1. 버전확인
 ```
@@ -54,7 +62,7 @@ kubectl get nodes
 ### 3. 컨테이너 실행 및 배포
 
 ##### 3-1. nginx 컨테이너 실행
-
+- 이 명령어는 서비스가 아직 안올라가고, 디폴로이 까지만 배포하는 상태다
 ```
 kubectl run nginx --image=nginx:1.10.0
 ```
@@ -62,16 +70,19 @@ kubectl run nginx --image=nginx:1.10.0
 ##### 3-2. 파드 정보 확인
 ```
 kubectl get pods
+kubectl describe nginx-부여된-팟-난수
 ```
 
 ##### 3-3. 외부에서 접근할 수 있도록 서비스 추가
+- 이제 엔진엑스는 외부에서 붙을 수 있다.
+- 외부 아이피와 / 포트포워딩이 자동 부여 된다.
 ```
 kubectl expose deployment nginx --port 80 --type LoadBalancer
 ```
 
 ##### 3-4. 서비스 확인
 ```
-kubectl get services
+kubectl get svc
 ```
 
 ##### 3-5. 외부에서 붙기
@@ -84,13 +95,21 @@ curl http://<External IP>:80
 ##### 4-1. 컨테이너 내부 접속
 ```
 kubectl get pods
-k exec -it [파드이름] sh
+kubectl exec -it [파드이름] bash
+```
+
+##### 4-2. 컨테이너의 프로세스 확인
+- 1번 프로세스가 죽으면 컨테이너가 죽는다 (여기서는 nginx)
+- 우분투의 1번 프로세스가 우분투고 그것을 죽이면 죽는 것과 마찬가지로
+```
+ps -ef
 ```
 
 ##### 4-2. 소스수정
 ```
 cd /usr/share/nginx/html
-apt-install vim
+apt update && apt install -y vim
+vi index.html
 ```
 
 ### 다음시간은
