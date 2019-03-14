@@ -102,4 +102,12 @@ docker run -d -p 8888:8888 -h my-web-server 도커ACCOUNT/py-web-server:v1
 
 
 
-## Docker composer 로 워드프레스 띄워보기
+### 5. Docker composer 로 워드프레스 띄워보기
+
+##### 5-1. 도커 컴포즈 설치
+```
+sudo curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+sudo chmod +x /usr/local/bin/docker-compose
+
+```
