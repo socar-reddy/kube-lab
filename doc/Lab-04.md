@@ -21,12 +21,14 @@
 
 - 서울 리전 선택
 - VPC > VPC 만들기
-  - 단일 퍼블릭 서브넷이 있는 VPC
+  - 단일 퍼블릭 서브넷이 있는 VPC(virtual private cloud)
     - 노드를 퍼블릭 서블릭에 구성하는 것은 보안에 취약함 (교육 목적상 구성)
   - VPC 이름 : `vpc-kube`
-  - 가용 영역 : `ap-northeast-2a`
+  - 가용 영역 : `ap-northeast-2a` / c 아님 주의
   - 서브넷 이름 : `public subnet-kube`
   - 나머지는 디폴트
+  - https://drive.google.com/open?id=1HIa7R_L7JEXmUy7oEy668MO_0CMdA_k7
+  
 - 서브넷 확인
   - public subnet-kube 서브넷의 라우팅 테이블 : igw 로 시작하는 것 확인
 - 보안 그룹 생성
@@ -100,21 +102,26 @@ EOF
 ```sh
 sudo apt-get update
 sudo apt-get install -y docker-ce=18.06.1~ce~3-0~ubuntu kubelet=1.12.2-00 kubeadm=1.12.2-00 kubectl=1.12.2-00
-sudo apt-mark hold docker-ce kubelet kubeadm kubectl
+sudo apt-mark hold docker-ce kubelet kubeadm kubectl # 업데이트시 버전업 안되도록 홀드
 ```
 
 ### 3-2. `net.bridge.bridge-nf-call-iptables` 활성화
+- 네트워크 브릿지 활성화
+- 컨테이너간 통신을 할 수 있도록 열어주는 명령어
 ```sh
 echo "net.bridge.bridge-nf-call-iptables=1" | sudo tee -a /etc/sysctl.conf
 sudo sysctl -p
 ```
 
 ### 3-3. 클러스터 초기화 (마스터노드만)
+- flannel는 cidr을 꼭 저렇게 설정해야 한다.
 ```sh
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16
 ```
 
 ### 3-4. kubectl 구성 (마스터노드만)
+- 클러스트에 접근 할 수 있게끔 홈으로 이동시킨다
+- 권한도 준다
 ```sh
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
