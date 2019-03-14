@@ -25,7 +25,7 @@ alias k=kubectl
 
 ### 2-1. nginx 컨테이터 이미지를 Pod으로 띄워보기
 
-참고 : https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#step-two-add-a-nodeselector-field-to-your-pod-configuration
+참고 : [쿠버네티스 홈페이지 참고 링크](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#step-two-add-a-nodeselector-field-to-your-pod-configuration)
 
 ##### 매니페스트 파일 (YAML) 작성
 
@@ -50,10 +50,15 @@ spec:
 ```
 
 ##### Pod 띄우기
+- create 명령어를 안쓰는 이유
+- 모디파이 할떄는 create안먹고 apply만 먹는다
+- 야믈파일을 수정한 이후에는 apply를 통해서 수정한 사항 반영
 ```shell
 kubectl apply -f pod.yaml
 kubectl get po
 kubectl get po --show-labels
+kubectl get po -l env=test
+# 라벨 골라서 get
 ```
 
 ##### 세부사항 조회
@@ -63,12 +68,13 @@ kubectl get po --show-labels
 - 이벤트 정보
 
 ```sh
-kubectl describe po 파드이름
+kubectl describe po 파드이름(nginx)
 ```
 
 ##### 파드 삭제
 ```sh
 kubectl delete po 파드이름
+kebectl delete po -f pod1.yaml # 이렇게도 지울 수 있다.
 ```
 
 파드가 삭제될 때는 30초의 유예기간을 갖습니다. 더이상 요청을 받지 않습니다.
@@ -93,19 +99,38 @@ spec:
   nodeSelector:
     disktype: ssd
 ```
+- imagePullPolicy 현재 땡겨온 이미지가 있으면 있는걸 계속 재활용 한다는 의미
+- 디스크 타입이 ssd라는 라벨딱지가 붙어있는 노드에만 배포하겠다는 뜻
 
-파드 생성이 안된다...
-
-```sh
-kubectl label node 이름 disktype=ssd
+그런데 파드 생성이 안된다... 계속 펜딩(Pending)상태..
+```
+kubectl describe po nginx
+로 살펴보니 Events 상태를 보니 노드셀렉터와 매치할 수 있는 노드가 없다...
 ```
 
-### 2-3. 네임스페이스 지정해보기
+```sh
+kubectl get node --show-labels
+kubectl get node --show-labels | grep ssd
+없다...
+```
 
+노드에 라벨 붙히기
+```sh
+kubectl label node 이름(여기서는두번째노드로해보자) disktype=ssd
+```
+다시 pod이 제대로 running하기 시작했다.
+
+### 2-3. 네임스페이스 지정해보기
+- 지금까지는 pod를 만들때 기본 네임스페이스에서 생성했다.
 - **네임스페이스** : 클러스터 내부의 객체를 관리.
   - 각 네임스페이스는 객체 집합을 담고 있는 폴더로 생각할 수 있습니다.
   - 명시를 안하면, default namespace
 
+네임스페이스 만들기
+```
+kubectl create ns kub(네임스페이스명)
+kubectl get ns
+```
 
 pod2-3.yaml
 
@@ -114,7 +139,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   namespace: kuba
-  name: nginx
+  name: nginx-kuba
   labels:
     env: test
 spec:
@@ -123,12 +148,27 @@ spec:
     image: nginx
 ```
 
+아래에 2개의 명령어로 나오는 pod은 다르다
+다른 네임스페이스에 있기 때문에
+```
+kubectl get po
+kubectl get po -n kuba
+```
+
+pod제거
+```
+kubectl delete po nginx
+kubectl delete po nginx-kuba -n kuba
+```
+
+
 ## 3. 포트 포워딩
 
 참고 : https://github.com/kubernetes-up-and-running/kuard
 
 ### 3-1. kuard-pod.yaml
-
+- 쿠버네티스 업 앤 러닝 데모?
+- 이번에는 gcr.io레포에서 이미지를 땡겨온다
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -152,10 +192,15 @@ kubectl apply -f kuard-pod.yaml
 
 ### 3-3. 포트 포워딩
 
+https://i.stack.imgur.com/wmKgd.png 이런 느낌?
 ```shell
 kubectl port-forward kuard 8080:8080
 ```
 
+확인
+```shell
+curl localhost:8080
+```
 http://localhost:8080 확인
 
 
@@ -166,7 +211,8 @@ http://localhost:8080 확인
 실행중인 인스턴스에서 로그를 다운로드합니다.
 
 ```sh
-kubectl logs kuard
+kubectl logs kuard -f(pod 이름)
+
 ```
 
 ## 4. 하나의 파드, 두개의 컨테이너
@@ -174,7 +220,9 @@ kubectl logs kuard
 https://kubernetes.io/docs/tasks/access-application-cluster/communicate-containers-same-pod-shared-volume/#creating-a-pod-that-runs-two-containers
 
 two-container-pod.yaml
-
+- 엔진엑스는 웹서버만
+- 데비안 컨테이너는 소스만
+- emptyDir : 하드가 날라가면 해당 볼륨도 날라가는 속성
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -205,22 +253,39 @@ spec:
     args: ["-c", "echo Hello from the debian container > /pod-data/index.html"]
 ```
 
-컨테이너 쉘 접속
+팟 생성
+```
+kubectl apply -f two-container-pod.yaml
+kubectl get po
+kubectl describe po two-containers
+```
+- 엔진엑스는 running 
+- 데비안 컨테이너는 실행되고 터미네이트 된 상태
+- html을 만들고 바로 종료하는 것
+  - 리눅스는 1번 pid가 종료하면 리눅스 수명이 끝 근데 그 1번 pid가 html을 만드는 거였음
 
+
+팟속 컨테이너 쉘 접속
+- pod 속의 컨테이너에 접속
+- c는 컨테이너 지정 옵션
 ```sh
 kubectl exec -it two-containers -c nginx-container -- /bin/bash
 
 root@two-containers:/ apt-get update
-root@two-containers:/ apt-get install curl procps
+root@two-containers:/ apt-get install -y curl procps
 root@two-containers:/ ps aux
 
 root@two-containers:/ curl localhost
 ```
 
 포트포워딩 후 로컬에서 접속
-
+- &는 백그라운드 실행
 ```
-how?
+kubectl port-forward two-containers 8080:80 &
+curl localhost:8080
+
+jobs
+kill %1
 ```
 
 파드 상태를 확인해봅시다.
@@ -232,14 +297,16 @@ NAME             READY     STATUS      RESTARTS   AGE
 two-containers   1/2       Completed   0          20m
 ```
 
-왜 하나만 살아있을까요?
-
-나머지 하나도 계속 running 상태가 되도록 한번 변경해봅시다.
+```
+kubectl delete po two-containers
+```
 
 ## 5. 클러스터 삭제
 
-`gcloud container clusters delete lab03
-`
+```
+gcloud container clusters delete lab03
+```
+
 ## 6. 미니큐브 띄워보기
 
 https://kubernetes.io/ko/docs/tutorials/hello-minikube/
