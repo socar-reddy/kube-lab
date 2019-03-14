@@ -118,6 +118,10 @@ sudo sysctl -p
 ```sh
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16
 ```
+```
+kubeadm join 10.0.0.157:6443 --token 67crso.go8x2re8k8uc848g --discovery-token-ca-cert-hash sha256:977bb2f3594452f05d35912c810788a00f52d0ed6b191feb5bc8cb89ae237114
+이런 명령어가 결과로 나오면 잘 복사해둬라
+```
 
 ### 3-4. kubectl 구성 (마스터노드만)
 - 클러스트에 접근 할 수 있게끔 홈으로 이동시킨다
@@ -137,8 +141,9 @@ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/bc79dd1505b0c8
 ```
 
 ### 3-6. 워커 노드 부트스트래핑
+- 아까 init 하고 복사한거 
 ```sh
-sudo kubeadm join $controller_private_ip:6443 --token $token --discovery-token-ca-cert-hash $hash
+kubeadm join 10.0.0.157:6443 --token 67crso.go8x2re8k8uc848g --discovery-token-ca-cert-hash sha256:977bb2f3594452f05d35912c810788a00f52d0ed6b191feb5bc8cb89ae237114
 ```
 
 ### 3-7. 노드 조회
