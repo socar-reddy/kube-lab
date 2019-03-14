@@ -36,12 +36,12 @@ python3 web-server.py &
 
 ##### 2-4. 테스트
 ```
-python3 web-server.py &
+curl http://localhost:8888
 ```
 
 ##### 2-5. 웹서버 종료
 ```
-curl http://localhost:8888
+kill %1
 ```
 
 
