@@ -10,6 +10,7 @@
 
 - 클러스터 설치
 ```
+gcloud config set compute/zone asia-northeast1-c
 gcloud container clusters create lab06 --num-nodes 5 --scopes "https://www.googleapis.com/auth/projecthosting,storage-rw"
 ```
 
